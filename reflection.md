@@ -5,6 +5,10 @@
 **a. Initial design**
 
 - Briefly describe your initial UML design.
+    At a glance there will be at least an Owner class and Pet and Task classes with a one to many relationship 
+    where one owner can have many pets and tasks to do. An owner should be able to add pets to his/her profile,
+    add/remove tasks per pet, and schedule tasks on a calendar.
+    
 - What classes did you include, and what responsibilities did you assign to each?
 
 **b. Design changes**
