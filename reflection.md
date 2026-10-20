@@ -46,8 +46,10 @@
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
+- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)? I used AI in the brainstorming of the UML, the skeleton creation, test cases, and logic implementation of the project thus far. 
+    
 - What kinds of prompts or questions were most helpful?
+    I found that my most context-driven prompts yielded the most helpful responses. For example. When brainstorming for the UML diagram and relationships between all the classes, I prompted Claude Code with what each class had as my rough draft, and if there were any logical pitfalls or unclear relationships. It gave me a clear and consies response with considerations I had not thought of. I was able to push back and go back and forth with the AI to iteratevely improve my UML design and details.
 
 **b. Judgment and verification**
 

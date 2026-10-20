@@ -54,6 +54,17 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 #   ...
 ```
 
+SAMPLE OUTPUT AFTER PHASE 2; STEP 2:
+'''
+Today's Schedule - Tuesday, October 20, 2026
+Owner: Josue  |  Window: 08:00-20:00
+------------------------------------------------------------
+08:00-08:30  Morning walk       Perla [high]
+08:30-08:50  Play session       Mia   [low]
+09:30-09:40  Medication         Mia   [high]
+18:00-18:15  Evening feeding    Perla [medium]
+'''
+
 ## 🧪 Testing PawPal+
 
 ```bash
@@ -84,6 +95,8 @@ Sample test output:
 ## 📸 Demo Walkthrough
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
+
+    As of the end of Phase 2, I've implemented the core logic of the pawpal system. There are four interacting classes, The Owner, Pet, Task, and Scheduler classes. The Owner, Pet, Scheduler class will each have attributes that hold tasks. However, each of the list of tasks that belong to each respective class may not hold the same values/tasks all the time. An owner my have a much longer list of tasks that spans all his/her pets. A pet of course will only have tasks that are unique to that pet. The scheduler class will have a list of tasks that are scheduled, but it can also call the all the owners' tasks so that it may try to fit them into the schedule for a given date-time frame. The scheduler tries to fit all of the owners' tasks for all the pets into a given date-time frame, by checking if tasks have already been scheduled.
 
 1. <!-- Describe this step -->
 2. <!-- Describe this step -->

@@ -52,6 +52,9 @@ classDiagram
         +Time window_start
         +Time window_end
         +List~Task~ tasks
+        +Owner owner
+        +get_owner_tasks(include_completed) List~Task~
+        +auto_schedule() List~Task~
         +add_task_to_schedule(task, start)
         +remove_task_from_schedule(task_id)
         +has_conflict(start, duration) bool
@@ -63,3 +66,4 @@ classDiagram
     Pet "1" --> "0..*" Task : has
     Owner "1" --> "0..*" Scheduler : manages
     Scheduler "1" o-- "0..*" Task : schedules
+    Scheduler "*" --> "1" Owner : reads get_all_tasks()
