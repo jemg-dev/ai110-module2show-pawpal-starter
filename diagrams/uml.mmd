@@ -1,19 +1,20 @@
 classDiagram
     class Owner {
-        +int owner_id
+        +String owner_id
         +String name
         +String username
         +String email
         +List~Pet~ pets
-        +create_user()
-        +delete_user()
+        +List~Scheduler~ schedules
         +add_pet(pet)
         +remove_pet(pet_id)
-        +get_all_tasks() List~Task~
+        +get_pet(pet_id) Pet
+        +add_schedule(schedule)
+        +get_all_tasks(include_completed) List~Task~
     }
 
     class Pet {
-        +int pet_id
+        +String pet_id
         +String name
         +String species
         +String breed
@@ -22,41 +23,40 @@ classDiagram
         +List~String~ allergies
         +String notes
         +List~Task~ tasks
-        +add_pet()
-        +remove_pet()
-        +edit_pet()
+        +edit_pet(**fields)
         +add_task(task)
         +remove_task(task_id)
+        +check_task_constraints(task) List~String~
     }
 
     class Task {
-        +int task_id
+        +String task_id
+        +String pet_id
         +String title
         +String description
         +int duration_minutes
         +String priority
         +String category
-        +bool is_recurring
+        +String recurrence
         +bool is_completed
-        +Time start_time
-        +Time end_time
-        +create_task()
-        +delete_task()
-        +edit_task()
-        +mark_complete()
+        +datetime start
+        +end() datetime
+        +overlaps(start, duration) bool
+        +edit_task(**fields)
+        +mark_complete() Task
     }
 
     class Scheduler {
-        +int schedule_id
+        +String schedule_id
         +Date date
-        +Time start_time
-        +Time end_time
+        +Time window_start
+        +Time window_end
         +List~Task~ tasks
-        +add_task_to_schedule(task, start_time)
+        +add_task_to_schedule(task, start)
         +remove_task_from_schedule(task_id)
-        +has_conflict(start_time, duration) bool
+        +has_conflict(start, duration) bool
         +get_daily_schedule() List~Task~
-        +find_next_available_slot(duration) Time
+        +find_next_available_slot(duration) datetime
     }
 
     Owner "1" --> "0..*" Pet : owns

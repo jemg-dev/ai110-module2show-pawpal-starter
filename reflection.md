@@ -7,14 +7,24 @@
 - Briefly describe your initial UML design.
     At a glance there will be at least an Owner class and Pet and Task classes with a one to many relationship 
     where one owner can have many pets and tasks to do. An owner should be able to add pets to his/her profile,
-    add/remove tasks per pet, and schedule tasks on a calendar.
+    add/remove tasks per pet, and schedule tasks on a calendar. I also added a Scheduler class as well, however, admittedly this was due to the project spec. However, the Scheduler class should be able to add and remove tasks of course with blocked out time periods.
     
 - What classes did you include, and what responsibilities did you assign to each?
+    Owner: This class represents the user and will have attributes like username, name, email, and a list of pets. You can create and delete this user account as well as see all tasks, and pets under this user
+
+    Pet: This class represents the pet(s) of an owner. Pets can have an id, name, species, breed, age, restrictions, and tasks associated to that individual pet. Moreover, you can add/remove pets, edit the pet, add/remove tasks for this pet.
+
+    Task: The Task class represents individual tasks. A task can have an id, title, description, duration, priority, category, completion flag, and start/end times. You can create/delete a task, edit it, or mark it as complete. 
+
+    Scheduler: The scheduler class represent a log or a schedule for a day. It has an id, date, start/end times. and tasks associated with it. You can add/remove, see conflicts, and all the task for a given allocation. 
+
 
 **b. Design changes**
 
 - Did your design change during implementation?
+    Yes
 - If yes, describe at least one change and why you made it.
+    Yes, in the initial UML draft, there was no actual link between an owner and schedules. The UML diagram said that the owner manages the schedule, but there was no attribute in the owner class to see which schedules belonged to the owner. Now the Owner class has an attribute called schedules which is a list of scheduler objects.
 
 ---
 
