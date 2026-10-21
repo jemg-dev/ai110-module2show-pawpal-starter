@@ -83,14 +83,14 @@ Sample test output:
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+Each feature is implemented by a method in `pawpal_system.py`.
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time(tasks=None)` | Uses `sorted()` with a lambda key that formats each start as a zero-padded `"HH:MM"` string, which sorts correctly as text. Tasks with no start time go last. `Scheduler.get_daily_schedule()` uses it to display the day. |
+| Filtering | `Owner.filter_tasks(completed=None, pet_name=None)` | Filters across all of an owner's pets by completion status (`True`/`False`), by pet name (case-insensitive), or both; a filter left as `None` is ignored. The Streamlit task table exposes it as "Filter by status" and "Filter by pet" dropdowns. |
+| Conflict handling | `Scheduler.find_conflicts(tasks=None)` | Lightweight check that returns warning messages instead of raising errors. Sorts the day's pending, timed tasks and flags every pair whose time ranges overlap, for the same pet or different pets. Back-to-back tasks are not conflicts. Shown as yellow warnings in the app and printed by `main.py`. (`add_task_to_schedule()` still raises `ValueError` on a forced clash, and `auto_schedule()` reports clashes as unplaced.) |
+| Recurring tasks | `Task.mark_complete()`, `Pet.complete_task(task_id)` | Tasks repeat `"none"`, `"daily"` or `"weekly"`. Completing one through `Pet.complete_task()` adds a new copy due today + 1 day (daily) or + 7 days (weekly), computed with `timedelta`, at the original time of day. Non-recurring tasks spawn nothing, and completing a task twice creates no duplicates. |
 
 ## 📸 Demo Walkthrough
 

@@ -38,7 +38,11 @@
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+    The scheduler is greedy and warn-only. `auto_schedule()` places tasks one at a time, highest priority first, and a task that has a fixed start time is only ever tried at that exact time. If two tasks overlap (for the same pet or different pets), the higher priority task keeps the slot and the other is reported as "could not fit" instead of being moved to the next free slot. `find_conflicts()` likewise only returns warning messages; it never blocks a task or fixes the clash. It does check real overlaps (start/end ranges), not just identical start times, but it compares every timed task in the day and leaves the resolution to the owner.
+    When I asked for a simpler version of `find_conflicts()`, the suggestion was `itertools.combinations(timed, 2)` with a one-line list comprehension that calls `Task.overlaps`. It is shorter, but it compares every pair and the warning formatting gets squeezed into the comprehension. I kept my nested loop: because the tasks are sorted by start time it can `break` as soon as a later task starts after the current one ends, and the loop reads top to bottom.
+
 - Why is that tradeoff reasonable for this scenario?
+    A pet owner's day has a handful of tasks, so the greedy approach is fast and its result is easy to explain ("the high priority task got the slot"). A backtracking optimizer would be much more complex for little gain. Warning instead of blocking also keeps the owner in control, since they may know a walk and a feeding can really happen together. The cost is that a lower priority task can get dropped even when moving it 20 minutes would have fit it, so a "move to next free slot" option is the first thing I would add.
 
 ---
 
