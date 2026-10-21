@@ -1,0 +1,75 @@
+classDiagram
+    class Owner {
+        +String owner_id
+        +String name
+        +String username
+        +String email
+        +List~Pet~ pets
+        +List~Scheduler~ schedules
+        +add_pet(pet)
+        +remove_pet(pet_id)
+        +get_pet(pet_id) Pet
+        +add_schedule(schedule)
+        +filter_tasks(completed, pet_name) List~Task~
+        +get_all_tasks(include_completed) List~Task~
+    }
+
+    class Pet {
+        +String pet_id
+        +String name
+        +String species
+        +String breed
+        +int age
+        +List~String~ dietary_restrictions
+        +List~String~ allergies
+        +String notes
+        +List~Task~ tasks
+        +edit_pet(**fields)
+        +add_task(task)
+        +remove_task(task_id)
+        +complete_task(task_id) Task
+        +check_task_constraints(task) List~String~
+    }
+
+    class Task {
+        +String task_id
+        +String pet_id
+        +String title
+        +String description
+        +int duration_minutes
+        +String priority
+        +String category
+        +String recurrence
+        +bool is_completed
+        +datetime start
+        +end() datetime
+        +overlaps(start, duration) bool
+        +edit_task(**fields)
+        +mark_complete() Task
+    }
+
+    class Scheduler {
+        +String schedule_id
+        +Date date
+        +Time window_start
+        +Time window_end
+        +List~Task~ tasks
+        +Owner owner
+        +get_owner_tasks(include_completed) List~Task~
+        +auto_schedule() List~Task~
+        +add_task_to_schedule(task, start)
+        +remove_task_from_schedule(task_id)
+        +has_conflict(start, duration) bool
+        +find_conflicts(tasks) List~String~
+        +sort_by_time(tasks) List~Task~
+        +get_daily_schedule() List~Task~
+        +find_next_available_slot(duration) datetime
+    }
+
+    Owner "1" --> "0..*" Pet : owns
+    Pet "1" --> "0..*" Task : has
+    Owner "1" --> "0..*" Scheduler : manages
+    Scheduler "1" o-- "0..*" Task : schedules
+    Scheduler "*" --> "0..1" Owner : reads get_all_tasks()
+    Task ..> Task : mark_complete() spawns next occurrence
+    Pet ..> Task : complete_task() stores spawned occurrence

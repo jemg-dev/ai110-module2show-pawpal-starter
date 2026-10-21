@@ -9,33 +9,20 @@ st.title("🐾 PawPal+")
 
 st.markdown(
     """
-Welcome to the PawPal+ starter app.
-
-This file is intentionally thin. It gives you a working Streamlit app so you can start quickly,
-but **it does not implement the project logic**. Your job is to design the system and build it.
-
-Use this app as your interactive demo once your backend classes/functions exist.
+Welcome to **PawPal+**, your pet care planning assistant. Add your pets, list the care
+they need each day, and PawPal+ builds a clear schedule that keeps everything on track.
 """
 )
 
-with st.expander("Scenario", expanded=True):
+with st.expander("What PawPal+ can do", expanded=True):
     st.markdown(
         """
-**PawPal+** is a pet care planning assistant. It helps a pet owner plan care tasks
-for their pet(s) based on constraints like time, priority, and preferences.
-
-You will design and implement the scheduling logic and connect it to this Streamlit UI.
-"""
-    )
-
-with st.expander("What you need to build", expanded=True):
-    st.markdown(
-        """
-At minimum, your system should:
-- Represent pet care tasks (what needs to happen, how long it takes, priority)
-- Represent the pet and the owner (basic info and preferences)
-- Build a plan/schedule for a day that chooses and orders tasks based on constraints
-- Explain the plan (why each task was chosen and when it happens)
+- **Track pets and tasks:** walks, feeding, medication, grooming and more, each with a duration and priority.
+- **Plan your day:** place every pending task into today's window, highest priority first, and see anything that doesn't fit.
+- **Catch conflicts:** get a warning when two tasks overlap, with a suggested free time to move one.
+- **Stay organized:** view tasks sorted by time and filter them by pet or status.
+- **Handle routines:** daily and weekly tasks automatically schedule their next occurrence when completed.
+- **Stay safe:** get a warning when a task mentions one of your pet's allergies or dietary restrictions.
 """
     )
 
@@ -121,8 +108,41 @@ pet_names = {p.pet_id: p.name for p in owner.pets}
 # Throwaway scheduler (not added to owner.schedules) just to run the conflict check.
 checker = Scheduler(date=date.today(), window_start=time(8, 0), window_end=time(20, 0))
 checker.owner = owner
-for message in checker.find_conflicts():
-    st.warning(message.removeprefix("WARNING: "))
+conflicts = checker.find_conflicts()
+if conflicts:
+    # One loud summary with the next step, then one specific line per clash.
+    st.error(f"⚠️ {len(conflicts)} scheduling conflict(s) today. "
+             "Delete one task in each pair using 'Delete a task' below, then re-add it at the suggested time.")
+    for message in conflicts:
+        st.warning(message.removeprefix("WARNING: "))
+elif any(t.start for t in owner.get_all_tasks()):
+    st.success("No scheduling conflicts today.")
+
+all_tasks = owner.filter_tasks()
+if all_tasks:
+    with st.expander("Delete a task", expanded=bool(conflicts)):
+        delete_id = st.selectbox(
+            "Task to delete",
+            [t.task_id for t in all_tasks],
+            format_func=lambda tid: next(
+                f"{pet_names[t.pet_id]}: {t.title} ({t.start:%H:%M})" if t.start
+                else f"{pet_names[t.pet_id]}: {t.title}" for t in all_tasks if t.task_id == tid),
+        )
+        victim = next(t for t in all_tasks if t.task_id == delete_id)
+        # Find a free slot among today's other pending timed tasks.
+        planner = Scheduler(date=date.today(), window_start=time(8, 0), window_end=time(20, 0))
+        planner.tasks = [t for t in all_tasks if t.task_id != delete_id and not t.is_completed
+                         and t.start is not None and t.start.date() == planner.date]
+        slot = planner.find_next_available_slot(victim.duration_minutes)
+        if slot:
+            st.info(f"Suggested time to re-add it: {slot:%H:%M} "
+                    f"({victim.duration_minutes} min, {victim.priority} priority, repeats: {victim.recurrence}).")
+        else:
+            st.info("No free slot left today for this task; try a shorter duration.")
+        if st.button("Delete task"):
+            owner.get_pet(victim.pet_id).remove_task(delete_id)
+            st.toast(f"Deleted '{victim.title}'. Re-add it with the form above.")
+            st.rerun()
 
 if any(p.tasks for p in owner.pets):
     fcol1, fcol2 = st.columns(2)
@@ -135,6 +155,8 @@ if any(p.tasks for p in owner.pets):
         pet_name=None if pet_filter == "All" else pet_filter,
     )
     if shown:
+        st.caption("Sorted by start time; tasks without a time are listed last.")
+        shown = checker.sort_by_time(shown)
         st.table([
             {"pet": pet_names[t.pet_id], "title": t.title,
              "start": t.start.strftime("%H:%M") if t.start else "auto",
@@ -155,6 +177,10 @@ if st.button("Generate schedule"):
     owner.add_schedule(schedule)
     unplaced = schedule.auto_schedule()
     if schedule.tasks:
+        if unplaced:
+            st.warning(f"Scheduled {len(schedule.tasks)} task(s); {len(unplaced)} did not fit.")
+        else:
+            st.success(f"All {len(schedule.tasks)} task(s) fit in today's window.")
         st.table([
             {"start": t.start.strftime("%H:%M"), "end": t.end.strftime("%H:%M"),
              "pet": pet_names[t.pet_id], "task": t.title, "priority": t.priority}
@@ -163,4 +189,5 @@ if st.button("Generate schedule"):
     else:
         st.info("No tasks to schedule.")
     for t in unplaced:
-        st.warning(f"Could not fit '{t.title}' ({pet_names[t.pet_id]}) in today's window.")
+        st.warning(f"Could not fit '{t.title}' ({pet_names[t.pet_id]}) in today's window. "
+                   "Shorten it, lower another task's priority, or move it to another day.")

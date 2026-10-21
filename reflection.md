@@ -33,7 +33,10 @@
 **a. Constraints and priorities**
 
 - What constraints does your scheduler consider (for example: time, priority, preferences)?
+    The scheduler works inside a daily time window (8:00-20:00 in the app). A task must fit entirely inside that window, can't run past midnight, and can't overlap a task already placed. It also honors a fixed start time when the owner gives one, and orders everything else by priority (high, medium, low). Separately, `Pet.check_task_constraints()` warns when a task mentions one of the pet's allergies or dietary restrictions.
+
 - How did you decide which constraints mattered most?
+    I put priority first because a missed medication matters more than a missed play session, so high priority tasks get first pick of the day. Fixed start times came next because the owner chose them on purpose. Everything else flows around those two into the earliest free gap. Allergy and diet checks only warn, since the owner knows the pet better than my keyword match does.
 
 **b. Tradeoffs**
 
@@ -58,7 +61,24 @@
 **b. Judgment and verification**
 
 - Describe one moment where you did not accept an AI suggestion as-is.
+    The `itertools.combinations` version of `find_conflicts()` described in section 2b. It was shorter, but I kept my sorted nested loop because it can stop early and the warning text stays readable.
+
 - How did you evaluate or verify what the AI suggested?
+    I read the code before accepting it, then checked it by running things: the test suite, `pytest --cov` to find lines no test touched, and `main.py` to see the real output. When the coverage report showed untested lines (the edit, remove and allergy methods), I had tests written for them and re-ran everything.
+
+**c. AI strategy**
+
+- Which AI coding assistant features were most effective for building your scheduler?
+    Three things helped most. Attaching my actual files (`pawpal_system.py`, `main.py`, the tests) meant the suggestions fit my code instead of generic examples. Letting the assistant run the tests, coverage and `main.py` itself meant every change was checked against real output straight away. And it was good at the tedious parts, like writing a long list of edge-case tests (back-to-back tasks, a task ending exactly at the window end, double completion) that I would have skipped or done sloppily.
+
+- Give one example of an AI suggestion you rejected or modified to keep your system design clean.
+    When conflicts showed up in the UI, the assistant offered to add an "edit task" control so the owner could change a start time in place. I turned that down and asked for a simpler flow: delete the task and re-add it at a suggested free time. That reuses `Pet.remove_task` and the existing add form, and the suggested time comes from `find_next_available_slot`, so no new editing state or extra re-check logic was needed. The trade-off is retyping a task, which I accepted to keep the app small.
+
+- How did using separate chat sessions for different phases help you stay organized?
+    Keeping design, implementation, tests and UI in separate sessions meant each conversation had one clear goal and a small amount of context, so the assistant stayed focused and I could trace which session produced which decision. The UML draft, the logic, and the README each had their own history, and I brought the current files into each new session instead of relying on memory.
+
+- Summarize what you learned about being the "lead architect" when collaborating with powerful AI tools.
+    The AI can produce a lot of code quickly, but it doesn't know which trade-offs I want. My job was to decide the structure (who owns tasks, where scheduling logic lives, warn instead of block) and to say no when a suggestion added complexity I didn't need. I also learned to keep asking for the real output and tests as proof, since confident-sounding code can still hide quirks, like recurrence being based on today's date instead of the original date.
 
 ---
 
@@ -67,12 +87,18 @@
 **a. What you tested**
 
 - What behaviors did you test?
+    Five core behaviors: sorting by time (including zero-padding and untimed tasks last), recurring tasks (daily and weekly, no duplicates, unknown id raises), conflict detection (same pet, different pets, back-to-back not flagged, completed and untimed tasks ignored), auto-scheduling (priority order, fixed start times, window edges, midnight) and filtering. I also covered edit, remove and allergy methods, so all 67 tests give 100% coverage of `pawpal_system.py`.
+
 - Why were these tests important?
+    These are the behaviors a pet owner relies on. A wrong sort order, a missed conflict or a task that spawns twice would quietly give the owner a bad plan, and boundary cases like a task ending exactly at 20:00 are where off-by-one mistakes hide.
 
 **b. Confidence**
 
 - How confident are you that your scheduler works correctly?
+    About 4 out of 5. The features I listed are tested hard, including edge cases, but 100% coverage only means every line ran, not that every situation was considered.
+
 - What edge cases would you test next if you had more time?
+    Recurrence that starts from the task's original date instead of today, tasks that span several days, two pets with the same name (filtering by name would mix them up), daylight saving changes, and the Streamlit page itself, which has no automated tests.
 
 ---
 
@@ -81,11 +107,14 @@
 **a. What went well**
 
 - What part of this project are you most satisfied with?
+    The scheduler and its test suite. Sorting, conflict warnings, recurrence and auto-scheduling work together, I can show each one in `main.py` and the app, and the tests back them up.
 
 **b. What you would improve**
 
 - If you had another iteration, what would you improve or redesign?
+    I would add a "move to the next free slot" option so a lower priority task isn't dropped when shifting it 20 minutes would fit, an edit control in the UI, and recurrence that counts from the task's original date. I would also let the owner set the daily window in the app instead of fixing it at 8:00-20:00.
 
 **c. Key takeaway**
 
 - What is one important thing you learned about designing systems or working with AI on this project?
+    Design first, then let the AI help build it. Because the classes, relationships and trade-offs were settled in the UML, I could judge every suggestion against that design and keep the code simple. Tests and real output are what let me trust the AI's work.
